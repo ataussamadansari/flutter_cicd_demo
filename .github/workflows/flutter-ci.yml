@@ -27,8 +27,8 @@ jobs:
       # - name: Build Android APK (debug)
       #   run: flutter build apk --debug
 
-      # - name: Build Android APK (release)
-      #   run: flutter build apk --release
+      - name: Build Android APK (release)
+        run: flutter build apk --release
 
       # ------------ iOS IPA ------------
       - name: Build iOS (no codesign)
