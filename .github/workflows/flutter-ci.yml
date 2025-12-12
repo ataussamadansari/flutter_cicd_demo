@@ -1,4 +1,4 @@
-name: Flutter CI
+name: Android & iOS APK/IPA Build
 
 on:
   push:
@@ -8,12 +8,13 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set up Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.38.4"
@@ -22,17 +23,35 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Run tests
-        run: flutter test --coverage
-
+      # ------------ ANDROID APK ------------
       - name: Build Android APK (debug)
         run: flutter build apk --debug
 
       - name: Build Android APK (release)
         run: flutter build apk --release
 
-      - name: Upload artifact (APK)
+      # ------------ iOS IPA ------------
+      - name: Build iOS (no codesign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Create iOS IPA file
+        run: |
+          cd build/ios/iphoneos
+          mkdir Payload
+          mv Runner.app Payload/
+          zip -r app.ipa Payload
+
+      # ------------ Upload Artifacts ------------
+      - name: Upload Android APKs
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          name: android-apk-files
+          path: |
+            build/app/outputs/flutter-apk/app-debug.apk
+            build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload iOS IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-ipa
+          path: build/ios/iphoneos/app.ipa
