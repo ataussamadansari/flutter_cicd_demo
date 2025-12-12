@@ -24,11 +24,11 @@ jobs:
         run: flutter pub get
 
       # ------------ ANDROID APK ------------
-      - name: Build Android APK (debug)
-        run: flutter build apk --debug
+      # - name: Build Android APK (debug)
+      #   run: flutter build apk --debug
 
-      - name: Build Android APK (release)
-        run: flutter build apk --release
+      # - name: Build Android APK (release)
+      #   run: flutter build apk --release
 
       # ------------ iOS IPA ------------
       - name: Build iOS (no codesign)
@@ -47,8 +47,8 @@ jobs:
         with:
           name: android-apk-files
           path: |
-            build/app/outputs/flutter-apk/app-debug.apk
             build/app/outputs/flutter-apk/app-release.apk
+            # build/app/outputs/flutter-apk/app-debug.apk
 
       - name: Upload iOS IPA
         uses: actions/upload-artifact@v4
@@ -56,23 +56,25 @@ jobs:
           name: ios-ipa
           path: build/ios/iphoneos/app.ipa
 
-      # ------------ Restore rclone config from secret ------------
+            # ------------ Restore rclone config from secret ------------
       - name: Restore rclone.conf
         run: |
           mkdir -p ~/.config/rclone
           echo "${{ secrets.RCLONE_CONFIG_BASE64 }}" | base64 --decode > ~/.config/rclone/rclone.conf
         shell: bash
 
-      # ------------ Upload APKs to Google Drive using rclone ------------
-      - name: Upload APKs to Google Drive
-        uses: wei/rclone@v1
-        with:
-          args: copy build/app/outputs/flutter-apk/ gdrive:/CI-CD-Builds/APK/ --create-empty-src-dirs
+      # ------------ Install rclone ------------
+      - name: Install rclone
+        run: brew install rclone
 
+      # ------------ Upload APKs to Google Drive ------------
+      - name: Upload APKs to Google Drive
+        run: rclone copy build/app/outputs/flutter-apk/ gdrive:/CI-CD-Builds/APK/ --create-empty-src-dirs
+
+      # ------------ Upload IPA to Google Drive ------------
       - name: Upload IPA to Google Drive
-        uses: wei/rclone@v1
-        with:
-          args: copy build/ios/iphoneos/app.ipa gdrive:/CI-CD-Builds/IPA/
+        run: rclone copy build/ios/iphoneos/app.ipa gdrive:/CI-CD-Builds/IPA/
+
 
 
 
